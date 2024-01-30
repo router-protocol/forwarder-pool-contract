@@ -42,7 +42,7 @@ contract ForwarderPool is Ownable {
         nativeTokenDeposits[msg.sender] += msg.value;
     }
 
-    function executeIRelay(IAssetForwarder.RelayData memory relayData) external onlyWhitelistedFiller {
+    function iRelay(IAssetForwarder.RelayData memory relayData) external onlyWhitelistedFiller {
         require(assetForwarder != IAssetForwarder(address(0)), "ForwarderPool: assetForwarder not set");
         if (isNative(relayData.destToken)) {
             require(
@@ -59,7 +59,7 @@ contract ForwarderPool is Ownable {
         }
     }
 
-    function executeIRelayMessage(IAssetForwarder.RelayDataMessage memory relayMessageData) external onlyWhitelistedFiller {
+    function iRelayMessage(IAssetForwarder.RelayDataMessage memory relayMessageData) external onlyWhitelistedFiller {
         require(assetForwarder != IAssetForwarder(address(0)), "ForwarderPool: assetForwarder not set");
         if (isNative(relayMessageData.destToken)) {
             require(

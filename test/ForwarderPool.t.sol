@@ -9,7 +9,7 @@ import "./utils/DamnValuableToken.sol";
 import "./utils/Interactor.sol";
 import "./utils/Dummy.sol";
 
-contract CounterTest is Test {
+contract ForwarderTest is Test {
     ForwarderPool public forwarderPool;
     // the identifiers of the forks
     uint256 mumbaiFork;
@@ -116,7 +116,7 @@ contract CounterTest is Test {
         vm.startPrank(filler1);
         uint256 balanceBefore = dvt.balanceOf(address(0xa1));
 
-        forwarderPool.executeIRelay(
+        forwarderPool.iRelay(
             IAssetForwarder.RelayData(
                 1000000,
                 0x6f736d6f2d746573742d35000000000000000000000000000000000000000000,
@@ -160,7 +160,7 @@ contract CounterTest is Test {
         vm.startPrank(filler1);
         uint256 balanceBefore = address(0xa1).balance;
 
-        forwarderPool.executeIRelay(
+        forwarderPool.iRelay(
             IAssetForwarder.RelayData(
                 1000000,
                 0x6f736d6f2d746573742d35000000000000000000000000000000000000000000,
@@ -206,7 +206,7 @@ contract CounterTest is Test {
         //message payload
         bytes memory payload = abi.encode(address(dummy), bytes("message"));
 
-        forwarderPool.executeIRelayMessage(
+        forwarderPool.iRelayMessage(
             IAssetForwarder.RelayDataMessage(
                 1000000,
                 0x6f736d6f2d746573742d35000000000000000000000000000000000000000000,
@@ -257,7 +257,7 @@ contract CounterTest is Test {
         //message payload
         bytes memory payload = abi.encode(address(dummy), bytes("message"));
 
-        forwarderPool.executeIRelayMessage(
+        forwarderPool.iRelayMessage(
             IAssetForwarder.RelayDataMessage(
                 1000000,
                 0x6f736d6f2d746573742d35000000000000000000000000000000000000000000,

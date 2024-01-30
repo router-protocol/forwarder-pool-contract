@@ -16,9 +16,9 @@ Key Functions
 
 - depositNativeToken(): Allows users to deposit native blockchain tokens (e.g., ETH) into the contract.
 
-- executeIRelay(IAssetForwarder.RelayData memory relayData): Executes the relay of tokens using the asset forwarder, subject to whitelist and balance checks.
+- iRelay(IAssetForwarder.RelayData memory relayData): Executes the relay of tokens using the asset forwarder, subject to whitelist and balance checks.
 
-- executeIRelayMessage(IAssetForwarder.RelayDataMessage memory relayMessageData): Similar to executeIRelay but for relaying messages.
+- iRelayMessage(IAssetForwarder.RelayDataMessage memory relayMessageData): Similar to iRelay but for relaying messages.
 
 - withdrawNativeToken(address payable recipient, uint256 amount): Allows the owner to withdraw native tokens from the contract.
 
@@ -36,13 +36,13 @@ Key Test Functions
 
 - testDepositNativeToken(): Tests depositing native tokens into the forwarder pool.
 
-- testExecuteIRelayWithErc20(): Tests the execution of a relay with ERC20 tokens.
+- testIRelayWithErc20(): Tests the execution of a relay with ERC20 tokens.
 
-- testExecuteIRelayWithNativeToken(): Tests the execution of a relay with native tokens.
+- testIRelayWithNativeToken(): Tests the execution of a relay with native tokens.
 
-- testExecuteIRelayMessageWithErc20(): Tests the execution of a relay message with ERC20 tokens.
+- testIRelayMessageWithErc20(): Tests the execution of a relay message with ERC20 tokens.
 
-- testExecuteIRelayMessageWithNativeToken(): Tests the execution of a relay message with native tokens.
+- testIRelayMessageWithNativeToken(): Tests the execution of a relay message with native tokens.
 
 ### Test Setup
 Uses Ethereum forks for testing (mumbaiFork).
