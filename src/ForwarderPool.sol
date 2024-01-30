@@ -1,16 +1,21 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.18;
+pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./IAssetForwarder.sol";
-import "./Multicaller.sol";
+import "./interfaces/IAssetForwarder.sol";
+// import "./Multicaller.sol";
 
-contract ForwarderPool is Ownable, Multicaller {
+contract ForwarderPool is Ownable {
+
+    constructor() Ownable(msg.sender) {
+
+    }
+
     mapping(address => uint256) private erc20Deposits;
     mapping(address => uint256) private nativeTokenDeposits;
-    mapping(address => bool) private whitelistedFillers;
-    IAssetForwarder private assetForwarder;
+    mapping(address => bool) public whitelistedFillers;
+    IAssetForwarder public assetForwarder;
 
     address private constant NATIVE_ADDRESS =
         0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
@@ -37,39 +42,48 @@ contract ForwarderPool is Ownable, Multicaller {
         nativeTokenDeposits[msg.sender] += msg.value;
     }
 
-    function executeIRelay(RelayData memory relayData) external onlyWhitelistedFiller {
+    function executeIRelay(IAssetForwarder.RelayData memory relayData) external onlyWhitelistedFiller {
         require(assetForwarder != IAssetForwarder(address(0)), "ForwarderPool: assetForwarder not set");
         if (isNative(relayData.destToken)) {
             require(
-                nativeTokenDeposits[address(this)] >= relayData.amount,
+                address(this).balance >= relayData.amount,
                 "ForwarderPool: insufficient native token balance"
             );
+            assetForwarder.iRelay{value: relayData.amount}(relayData);
         } else {
-            require(erc20Deposits[relayData.srcToken] >= relayData.amount, "ForwarderPool: insufficient ERC20 deposit");
-            erc20Deposits[relayData.srcToken] -= relayData.amount;
+            require(erc20Deposits[relayData.destToken] >= relayData.amount, "ForwarderPool: insufficient ERC20 deposit");
+            erc20Deposits[relayData.destToken] -= relayData.amount;
             // approve erc20 token to assetForwarder
-            IERC20(relayData.srcToken).approve(address(assetForwarder), relayData.amount);
+            IERC20(relayData.destToken).approve(address(assetForwarder), relayData.amount);
+            assetForwarder.iRelay(relayData);
         }
-        assetForwarder.execute(relayData);
     }
 
-    function executeIRelayMessage(RelayMessageData memory relayMessageData) external onlyWhitelistedFiller {
+    function executeIRelayMessage(IAssetForwarder.RelayDataMessage memory relayMessageData) external onlyWhitelistedFiller {
         require(assetForwarder != IAssetForwarder(address(0)), "ForwarderPool: assetForwarder not set");
         if (isNative(relayMessageData.destToken)) {
             require(
-                nativeTokenDeposits[address(this)] >= relayMessageData.amount,
+                address(this).balance >= relayMessageData.amount,
                 "ForwarderPool: insufficient native token balance"
             );
         } else {
-            require(erc20Deposits[relayMessageData.srcToken] >= relayMessageData.amount, "ForwarderPool: insufficient ERC20 deposit");
-            erc20Deposits[relayMessageData.srcToken] -= relayMessageData.amount;
+            require(erc20Deposits[relayMessageData.destToken] >= relayMessageData.amount, "ForwarderPool: insufficient ERC20 deposit");
+            erc20Deposits[relayMessageData.destToken] -= relayMessageData.amount;
             // approve erc20 token to assetForwarder
-            IERC20(relayMessageData.srcToken).approve(address(assetForwarder), relayMessageData.amount);
+            IERC20(relayMessageData.destToken).approve(address(assetForwarder), relayMessageData.amount);
         }
-        assetForwarder.executeMessage(relayMessageData);
+        assetForwarder.iRelayMessage(relayMessageData);
     }
 
     function isNative(address token) internal pure returns (bool) {
         return token == NATIVE_ADDRESS;
+    }
+
+    function withdrawNativeToken(address payable recipient, uint256 amount) external onlyOwner {
+        recipient.transfer(amount);
+    }
+
+    function withdrawERC20(address token, address recipient, uint256 amount) external onlyOwner {
+        IERC20(token).transfer(recipient, amount);
     }
 }
