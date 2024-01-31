@@ -54,9 +54,13 @@ contract ForwarderPool is Ownable {
             require(erc20Deposits[relayData.destToken] >= relayData.amount, "ForwarderPool: insufficient ERC20 deposit");
             erc20Deposits[relayData.destToken] -= relayData.amount;
             // approve erc20 token to assetForwarder
-            IERC20(relayData.destToken).approve(address(assetForwarder), relayData.amount);
+            // IERC20(relayData.destToken).approve(address(assetForwarder), relayData.amount);
             assetForwarder.iRelay(relayData);
         }
+    }
+
+    function approveAssetForwarder(address token, uint256 amount) external onlyWhitelistedFiller {
+        IERC20(token).approve(address(assetForwarder), amount);
     }
 
     function iRelayMessage(IAssetForwarder.RelayDataMessage memory relayMessageData) external onlyWhitelistedFiller {
@@ -70,7 +74,7 @@ contract ForwarderPool is Ownable {
             require(erc20Deposits[relayMessageData.destToken] >= relayMessageData.amount, "ForwarderPool: insufficient ERC20 deposit");
             erc20Deposits[relayMessageData.destToken] -= relayMessageData.amount;
             // approve erc20 token to assetForwarder
-            IERC20(relayMessageData.destToken).approve(address(assetForwarder), relayMessageData.amount);
+            // IERC20(relayMessageData.destToken).approve(address(assetForwarder), relayMessageData.amount);
         }
         assetForwarder.iRelayMessage(relayMessageData);
     }

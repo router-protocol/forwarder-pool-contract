@@ -99,6 +99,20 @@ contract ForwarderTest is Test {
         assertEq(balanceAfter - balanceBefore, 1 ether);
     }
 
+    function testApproveAssetForwarder() public {
+        vm.selectFork(mumbaiFork);
+        assertEq(vm.activeFork(), mumbaiFork);
+        vm.startPrank(owner);
+        forwarderPool.setAssetForwarder(mumbaiAssetForwarder);
+        forwarderPool.setWhitelistedFiller(filler1, true);
+        vm.stopPrank();
+        
+        vm.startPrank(filler1);
+        forwarderPool.approveAssetForwarder(address(dvt), 50 ether);
+        assertEq(dvt.allowance(address(forwarderPool), address(mumbaiAssetForwarder)), 50 ether);
+        vm.stopPrank();
+    }
+
     function testExecuteIRelayWithErc20() public {
         // set-up
         vm.selectFork(mumbaiFork);
@@ -115,7 +129,7 @@ contract ForwarderTest is Test {
         // execute the relay
         vm.startPrank(filler1);
         uint256 balanceBefore = dvt.balanceOf(address(0xa1));
-
+        forwarderPool.approveAssetForwarder(address(dvt),1000000);
         forwarderPool.iRelay(
             IAssetForwarder.RelayData(
                 1000000,
@@ -205,7 +219,7 @@ contract ForwarderTest is Test {
         uint256 balanceBefore = dvt.balanceOf(address(interactor));
         //message payload
         bytes memory payload = abi.encode(address(dummy), bytes("message"));
-
+        forwarderPool.approveAssetForwarder(address(dvt),1000000);
         forwarderPool.iRelayMessage(
             IAssetForwarder.RelayDataMessage(
                 1000000,
