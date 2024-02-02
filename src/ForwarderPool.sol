@@ -45,14 +45,14 @@ contract ForwarderPool is Ownable {
     function iRelay(IAssetForwarder.RelayData memory relayData) external onlyWhitelistedFiller {
         require(assetForwarder != IAssetForwarder(address(0)), "ForwarderPool: assetForwarder not set");
         if (isNative(relayData.destToken)) {
-            require(
-                address(this).balance >= relayData.amount,
-                "ForwarderPool: insufficient native token balance"
-            );
+            // require(
+            //     address(this).balance >= relayData.amount,
+            //     "ForwarderPool: insufficient native token balance"
+            // );
             assetForwarder.iRelay{value: relayData.amount}(relayData);
         } else {
-            require(erc20Deposits[relayData.destToken] >= relayData.amount, "ForwarderPool: insufficient ERC20 deposit");
-            erc20Deposits[relayData.destToken] -= relayData.amount;
+            // require(erc20Deposits[relayData.destToken] >= relayData.amount, "ForwarderPool: insufficient ERC20 deposit");
+            // erc20Deposits[relayData.destToken] -= relayData.amount;
             // approve erc20 token to assetForwarder
             // IERC20(relayData.destToken).approve(address(assetForwarder), relayData.amount);
             assetForwarder.iRelay(relayData);

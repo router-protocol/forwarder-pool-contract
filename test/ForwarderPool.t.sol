@@ -8,8 +8,12 @@ import "./utils/Utilities.sol";
 import "./utils/DamnValuableToken.sol";
 import "./utils/Interactor.sol";
 import "./utils/Dummy.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract ForwarderTest is Test {
+    error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed);
+
+
     ForwarderPool public forwarderPool;
     // the identifiers of the forks
     uint256 mumbaiFork;
@@ -106,7 +110,7 @@ contract ForwarderTest is Test {
         forwarderPool.setAssetForwarder(mumbaiAssetForwarder);
         forwarderPool.setWhitelistedFiller(filler1, true);
         vm.stopPrank();
-        
+
         vm.startPrank(filler1);
         forwarderPool.approveAssetForwarder(address(dvt), 50 ether);
         assertEq(dvt.allowance(address(forwarderPool), address(mumbaiAssetForwarder)), 50 ether);
@@ -150,6 +154,7 @@ contract ForwarderTest is Test {
             )
         );
         (bool success, bytes memory returnData)=mumbaiAssetForwarder.call(abi.encodeWithSignature("executeRecord(bytes32)", messageHash));
+        assert(success);
         (bool result) = abi.decode(returnData, (bool));
         assertEq(result, true);
         uint256 balanceAfter = dvt.balanceOf(address(0xa1));
@@ -157,6 +162,53 @@ contract ForwarderTest is Test {
         vm.stopPrank();
     }
 
+
+    function testExceptRevertERC20InsufficientBalanceWhileExecuteIRelayWithErc20() public {
+        // set-up
+        vm.selectFork(mumbaiFork);
+        vm.startPrank(owner);
+        // set contract state
+        forwarderPool.setAssetForwarder(mumbaiAssetForwarder);
+        // token deposit
+        dvt.approve(address(forwarderPool), 50);
+        forwarderPool.depositERC20(address(dvt), 50);
+        // whitelist filler
+        forwarderPool.setWhitelistedFiller(filler1, true);
+        vm.stopPrank();
+
+        // execute the relay
+        vm.startPrank(filler1);
+        uint256 balanceBefore = dvt.balanceOf(address(0xa1));
+        forwarderPool.approveAssetForwarder(address(dvt),1000000);
+        vm.expectRevert(abi.encodeWithSelector(ERC20InsufficientBalance.selector,address(forwarderPool), 50, 1000000));
+
+        forwarderPool.iRelay(
+            IAssetForwarder.RelayData(
+                1000000,
+                0x6f736d6f2d746573742d35000000000000000000000000000000000000000000,
+                186,
+                address(dvt),
+                address(0xa1)
+            )
+        );
+        bytes32 messageHash = keccak256(
+            abi.encode(
+                1000000,
+                0x6f736d6f2d746573742d35000000000000000000000000000000000000000000,
+                186,
+                address(dvt),
+                address(0xa1),
+                address(mumbaiAssetForwarder)
+            )
+        );
+        (bool success, bytes memory returnData)=mumbaiAssetForwarder.call(abi.encodeWithSignature("executeRecord(bytes32)", messageHash));
+        assert(success);
+        (bool result) = abi.decode(returnData, (bool));
+        assertEq(result, false);
+        uint256 balanceAfter = dvt.balanceOf(address(0xa1));
+        assertEq(balanceAfter , balanceBefore);
+        vm.stopPrank();
+    }
     function testExecuteIRelayWithNativeToken() public {
         // set-up
         vm.selectFork(mumbaiFork);
@@ -194,6 +246,7 @@ contract ForwarderTest is Test {
             )
         );
         (bool success, bytes memory returnData)=mumbaiAssetForwarder.call(abi.encodeWithSignature("executeRecord(bytes32)", messageHash));
+        assert(success);
         (bool result) = abi.decode(returnData, (bool));
         assertEq(result, true);
         uint256 balanceAfter = address(0xa1).balance;
@@ -242,6 +295,7 @@ contract ForwarderTest is Test {
             )
         );
         (bool success, bytes memory returnData)=mumbaiAssetForwarder.call(abi.encodeWithSignature("executeRecord(bytes32)", messageHash));
+        assert(success);
         (bool result) = abi.decode(returnData, (bool));
         assertEq(result, true);
         uint256 balanceAfter = dvt.balanceOf(address(interactor));
@@ -293,6 +347,7 @@ contract ForwarderTest is Test {
             )
         );
         (bool success, bytes memory returnData)=mumbaiAssetForwarder.call(abi.encodeWithSignature("executeRecord(bytes32)", messageHash));
+        assert(success);
         (bool result) = abi.decode(returnData, (bool));
         assertEq(result, true);
         uint256 balanceAfter = address(interactor).balance;
