@@ -18,4 +18,7 @@ contract Interactor {
             payload
         );
     }
+
+    // payable fallback function to receive ether
+    receive() external payable {}
 }
