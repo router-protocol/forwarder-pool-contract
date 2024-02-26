@@ -12,6 +12,15 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v2
       
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Generate Documentation
+        run: |
+          forge doc --output docs/  # Adjust the command according to your setup
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
