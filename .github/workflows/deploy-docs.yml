@@ -19,7 +19,7 @@ jobs:
 
       - name: Generate Documentation
         run: |
-          forge doc --output docs/  # Adjust the command according to your setup
+          forge doc --out docs/  # Adjust the command according to your setup
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
